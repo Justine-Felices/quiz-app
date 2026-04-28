@@ -1,44 +1,80 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, Calculator, Microscope, LogOut, User, Star, Clock, Trophy } from 'lucide-react';
+import { 
+  BookOpen, Calculator, Microscope, LogOut, User, Star, 
+  Clock, Trophy, Play, Zap, Award, Target, Flame, 
+  ChevronRight, Lock, Crown, Medal, TrendingUp
+} from 'lucide-react';
 import { quizService, QuizScore } from '../data/quizService';
 
 const subjects = [
   {
-    name: 'English',
+    id: 'english',
+    name: 'English Kingdom',
     icon: BookOpen,
-    gradient: 'from-blue-400 to-blue-600',
-    bgColor: 'bg-blue-100',
-    emoji: '📚'
+    gradient: 'from-blue-400 to-indigo-600',
+    bgColor: 'bg-blue-50',
+    accentColor: 'text-blue-600',
+    progress: 65,
+    stars: 124,
+    status: 'Daily Challenge Ready',
+    reward: 'Bonus: +20 XP',
+    illustration: '🏰'
   },
   {
-    name: 'Math',
+    id: 'math',
+    name: 'Math Mission',
     icon: Calculator,
-    gradient: 'from-purple-400 to-purple-600',
-    bgColor: 'bg-purple-100',
-    emoji: '🔢'
+    gradient: 'from-purple-400 to-fuchsia-600',
+    bgColor: 'bg-purple-50',
+    accentColor: 'text-purple-600',
+    progress: 42,
+    stars: 86,
+    status: 'Mission in Progress',
+    reward: 'Unlock: Geometry',
+    illustration: '🔢'
   },
   {
-    name: 'Science',
+    id: 'science',
+    name: 'Science Lab',
     icon: Microscope,
-    gradient: 'from-green-400 to-green-600',
-    bgColor: 'bg-green-100',
-    emoji: '🔬'
+    gradient: 'from-emerald-400 to-teal-600',
+    bgColor: 'bg-emerald-50',
+    accentColor: 'text-emerald-600',
+    progress: 18,
+    stars: 45,
+    status: 'New Quest Available',
+    reward: 'Next: Space Explorers',
+    illustration: '🔬'
   },
 ];
 
+const quickActions = [
+  { id: 'practice', label: 'Practice', icon: Target, color: 'text-orange-500', bg: 'bg-orange-50' },
+  { id: 'daily', label: 'Daily Quiz', icon: Zap, color: 'text-yellow-500', bg: 'bg-yellow-50' },
+  { id: 'badges', label: 'Badges', icon: Award, color: 'text-blue-500', bg: 'bg-blue-50' },
+  { id: 'leaderboards', label: 'Rankings', icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-50' },
+];
+
+const grades = [1, 2, 3, 4, 5, 6];
+const units = [1, 2, 3, 4, 5, 6];
+
 export default function Home() {
-  const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
+  const [userGrade, setUserGrade] = useState<number>(4);
+  const [selectedUnit, setSelectedUnit] = useState<number>(4);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [leaderboardTab, setLeaderboardTab] = useState<'subjects' | 'overall'>('subjects');
+  const [leaderboardTab, setLeaderboardTab] = useState<'weekly' | 'grade' | 'subject' | 'overall'>('grade');
   const [userScores, setUserScores] = useState<QuizScore[]>([]);
   const navigate = useNavigate();
   
-  // Set default username if not exists
   useEffect(() => {
     if (!localStorage.getItem('username')) {
       localStorage.setItem('username', 'Glaiza Felices');
+    }
+    const storedGrade = localStorage.getItem('userGrade');
+    if (storedGrade) {
+      setUserGrade(parseInt(storedGrade));
     }
   }, []);
 
@@ -49,356 +85,325 @@ export default function Home() {
     setUserScores(scores.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
   }, [username]);
 
-  const handleStart = () => {
-    if (selectedGrade && selectedSubject) {
-      navigate(`/quiz?grade=${selectedGrade}&subject=${selectedSubject}`);
-    }
+  const handleStart = (subjectName: string) => {
+    const cleanSubject = subjectName.split(' ')[0]; // Extract English, Math, Science
+    navigate(`/quiz?grade=${userGrade}&subject=${cleanSubject}`);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('username');
+    localStorage.removeItem('userGrade');
     navigate('/login');
   };
 
-  // Mock Database of users for Leaderboard
-  const allUsers = [
-    { name: 'Alex Rivera', avatar: '👨‍🎓', basePoints: 2500 },
-    { name: 'Sarah Chen', avatar: '👩‍🎓', basePoints: 2400 },
-    { name: 'Liam Wilson', avatar: '👨‍🔬', basePoints: 2300 },
-    { name: 'Emma Stone', avatar: '👩‍🎨', basePoints: 2200 },
-    { name: 'Glaiza Felices', avatar: '👧', basePoints: 2100 },
-    { name: 'James Bond', avatar: '🕵️', basePoints: 2000 },
-    { name: 'Peter Parker', avatar: '🕷️', basePoints: 1900 },
-    { name: 'Tony Stark', avatar: '🤖', basePoints: 1800 },
-    { name: 'Bruce Wayne', avatar: '🦇', basePoints: 1700 },
-    { name: 'Clark Kent', avatar: '🦸', basePoints: 1600 },
-    { name: 'Diana Prince', avatar: '👸', basePoints: 1500 },
-    { name: 'Barry Allen', avatar: '⚡', basePoints: 1400 },
-  ];
-
-  // Generate dynamic leaderboard based on selection
-  const getLeaderboardData = () => {
-    // Deterministic shuffle/scoring based on selection
-    const seed = (selectedGrade || 0) + (selectedSubject?.length || 0);
-    return [...allUsers]
-      .map(user => ({
-        ...user,
-        // Add some variation based on grade/subject
-        points: user.basePoints + (seed * 10) + (Math.sin(user.basePoints + seed) * 200),
-        score: `${Math.floor(90 + (Math.sin(seed + user.basePoints) * 10))}%`
-      }))
-      .sort((a, b) => b.points - a.points)
-      .map((item, index) => ({ ...item, rank: index + 1 }));
+  const handleQuickAction = (id: string) => {
+    switch (id) {
+      case 'badges':
+        navigate('/badges');
+        break;
+      case 'leaderboards':
+        navigate('/leaderboard');
+        break;
+      case 'practice':
+        // Start a practice quiz (Math by default for now)
+        navigate(`/quiz?grade=${userGrade}&subject=Math&mode=practice`);
+        break;
+      case 'daily':
+        // Start a daily challenge
+        navigate(`/quiz?grade=${userGrade}&subject=Science&mode=daily`);
+        break;
+      default:
+        break;
+    }
   };
 
-  const currentLeaderboard = getLeaderboardData();
-  const top10 = currentLeaderboard.slice(0, 10);
-  
-  // Get subject stars for the selected grade (or default)
-  const subjectBest = subjects.map(s => {
-    const seed = (selectedGrade || 1) + s.name.length;
-    const bestUser = allUsers[seed % allUsers.length];
-    return {
-      subject: s.name,
-      user: bestUser.name,
-      avatar: bestUser.avatar,
-      score: `${Math.floor(95 + (Math.sin(seed) * 4))}%`
-    };
-  });
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-100 p-4 pb-safe">
-      <div className="max-w-md mx-auto">
-        {/* User Profile Header */}
+    <div className="min-h-screen bg-[#F8F6FF] pb-24">
+      {/* 1. Hero Progress Card */}
+      <div className="px-5 pt-8 mb-8">
         <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl p-4 mb-6 text-white shadow-xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] rounded-[32px] p-6 text-white shadow-2xl shadow-indigo-200"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/20">
-                <span className="text-2xl">👧</span>
+          {/* Subtle Glow Overlay */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30 shadow-inner">
+                  <span className="text-3xl">👧</span>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black tracking-tight">Hi, {username}!</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs font-bold px-2 py-0.5 bg-white/20 rounded-full backdrop-blur-sm border border-white/20">
+                      Grade {userGrade} Explorer
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="font-black text-lg">👋 Hi, {username}!</p>
-                <p className="text-sm opacity-90 font-semibold">Ready to be #1 today?</p>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleLogout}
+                className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20"
+              >
+                <LogOut className="w-5 h-5 text-white/80" />
+              </motion.button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="text-center" onClick={() => navigate('/badges')}>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Total Stars</p>
+                <div className="flex items-center justify-center gap-1">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="text-xl font-black">1,240</span>
+                </div>
+              </div>
+              <div className="text-center border-x border-white/10 px-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Streak</p>
+                <div className="flex items-center justify-center gap-1">
+                  <Flame className="w-4 h-4 text-orange-400" />
+                  <span className="text-xl font-black">7 Days</span>
+                </div>
+              </div>
+              <div className="text-center" onClick={() => navigate('/leaderboard')}>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-1">Current Rank</p>
+                <div className="flex items-center justify-center gap-1">
+                  <Crown className="w-4 h-4 text-yellow-400" />
+                  <span className="text-xl font-black">#5</span>
+                </div>
               </div>
             </div>
+
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleLogout}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleStart('English Kingdom')}
+              className="w-full py-4 bg-white text-[#6366F1] rounded-2xl font-black text-lg shadow-xl shadow-indigo-900/10 flex items-center justify-center gap-2 group transition-all"
             >
-              <LogOut className="w-5 h-5" />
+              <Play className="w-5 h-5 fill-current" />
+              Continue Quiz
+              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </div>
         </motion.div>
+      </div>
 
-        {/* Welcome Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-3xl p-6 mb-6 shadow-xl relative overflow-hidden"
-        >
-          <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            className="absolute top-4 right-4 text-yellow-400"
-          >
-            <Star className="w-8 h-8" fill="currentColor" />
-          </motion.div>
-          <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
-            Quiz Master! 🏆
-          </h1>
-          <p className="text-gray-700 font-bold">
-            Aim for the top spot on the leaderboard! 🚀
-          </p>
-        </motion.div>
+      <div className="max-w-md mx-auto px-5">
+        {/* 2. Quick Actions Grid */}
+        <div className="grid grid-cols-2 gap-4 mb-10">
+          {quickActions.map((action) => (
+            <motion.button
+              key={action.id}
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleQuickAction(action.id)}
+              className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4 group"
+            >
+              <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                <action.icon className={`w-6 h-6 ${action.color}`} />
+              </div>
+              <span className="font-black text-gray-700">{action.label}</span>
+            </motion.button>
+          ))}
+        </div>
 
-        {/* Progress Section */}
-        {userScores.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="mb-6"
-          >
-            <div className="flex items-center justify-between mb-3 px-1">
-              <h3 className="text-lg font-black text-gray-800 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-purple-500" />
-                Your Recent Scores
-              </h3>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x">
-              {userScores.slice(0, 5).map((score, index) => (
-                <motion.div
-                  key={score.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="min-w-[150px] snap-start bg-white p-4 rounded-3xl shadow-lg border-2 border-purple-50"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] font-black px-2 py-0.5 bg-pink-100 text-pink-600 rounded-full">
-                      GRADE {score.grade}
-                    </span>
-                  </div>
-                  <h4 className="font-black text-gray-800 text-xs mb-1 truncate">{score.subject}</h4>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-xl font-black text-purple-600">{score.score}</span>
-                    <span className="text-[10px] font-bold text-gray-400">/ {score.total}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Leaderboard Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl p-5 mb-6 shadow-xl border-2 border-yellow-100"
-        >
+        {/* 4. Grade Journey Section -> Path Journey Section */}
+        <div className="mb-10 overflow-hidden">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-yellow-100 rounded-xl">
-                <Trophy className="w-5 h-5 text-yellow-600" />
-              </div>
-              <h3 className="text-lg font-black text-gray-800">Leaderboards</h3>
-            </div>
+            <h3 className="text-xl font-black text-gray-800">Grade {userGrade} Journey</h3>
+            <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Unit {selectedUnit} of 6</span>
           </div>
-
-          {/* Tab Switcher */}
-          <div className="flex p-1 bg-gray-100 rounded-2xl mb-4">
-            <button
-              onClick={() => setLeaderboardTab('subjects')}
-              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
-                leaderboardTab === 'subjects' 
-                  ? 'bg-white text-purple-600 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Subject Stars
-            </button>
-            <button
-              onClick={() => setLeaderboardTab('overall')}
-              className={`flex-1 py-2 rounded-xl text-xs font-black transition-all ${
-                leaderboardTab === 'overall' 
-                  ? 'bg-white text-purple-600 shadow-sm' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {selectedGrade || selectedSubject ? 'Filtered Rankings' : 'Top 10 Overall'}
-            </button>
-          </div>
-
-          <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1 scrollbar-hide">
-            {/* Active Filters Info */}
-            {(selectedGrade || selectedSubject) && leaderboardTab === 'overall' && (
-              <div className="flex items-center gap-2 mb-2 px-2 py-1.5 bg-purple-50 rounded-lg border border-purple-100">
-                <span className="text-[10px] font-black text-purple-600 uppercase">Showing:</span>
-                <span className="text-[10px] font-bold text-gray-600">
-                  {selectedGrade ? `Grade ${selectedGrade}` : 'All Grades'} 
-                  {selectedSubject ? ` • ${selectedSubject}` : ''}
-                </span>
-              </div>
-            )}
-
-            <AnimatePresence mode="wait">
-              {leaderboardTab === 'subjects' ? (
-                <motion.div
-                  key="subjects"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 10 }}
-                  className="space-y-3"
-                >
-                  {subjectBest.map((item) => (
-                    <motion.div
-                      key={item.subject}
-                      whileHover={{ x: 5 }}
-                      className="flex items-center justify-between p-3 rounded-2xl bg-gray-50 hover:bg-yellow-50 transition-colors border border-transparent hover:border-yellow-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{item.avatar}</span>
-                        <div>
-                          <p className="text-[10px] font-black text-purple-600 uppercase tracking-wider">{item.subject}</p>
-                          <p className="text-sm font-bold text-gray-800">{item.user}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-black text-pink-600">{item.score}</p>
-                        <div className="flex items-center gap-0.5 justify-end">
-                          {[...Array(3)].map((_, i) => (
-                            <Star key={i} className="w-2 h-2 fill-yellow-400 text-yellow-400" />
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="overall"
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="space-y-2"
-                >
-                  {top10.map((item) => (
-                    <div
-                      key={item.rank}
-                      className={`flex items-center justify-between p-2 rounded-xl ${
-                        item.name === username ? 'bg-purple-50 border border-purple-200' : 'bg-white border border-gray-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black ${
-                          item.rank === 1 ? 'bg-yellow-400 text-white' :
-                          item.rank === 2 ? 'bg-gray-300 text-white' :
-                          item.rank === 3 ? 'bg-orange-400 text-white' :
-                          'bg-gray-100 text-gray-400'
-                        }`}>
-                          {item.rank}
-                        </span>
-                        <span className="text-xl">{item.avatar}</span>
-                        <span className={`text-sm font-bold ${item.name === username ? 'text-purple-700' : 'text-gray-700'}`}>
-                          {item.name}
-                          {item.name === username && " (You)"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs font-black text-purple-600">{Math.floor(item.points).toLocaleString()}</span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">pts</span>
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
-        {/* Categories */}
-        <div className="mb-6">
-          <h3 className="text-lg font-black text-gray-800 mb-3 px-1">📖 Start a New Quiz</h3>
-          <div className="grid grid-cols-3 gap-3">
-            {subjects.map((subject) => {
-              const Icon = subject.icon;
+          <div className="flex gap-4 overflow-x-auto pb-4 px-2 scrollbar-hide -mx-2">
+            {units.map((unit) => {
+              const isSelected = selectedUnit === unit;
+              const isLocked = unit > 4;
               return (
                 <motion.button
-                  key={subject.name}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedSubject(subject.name)}
-                  className={`p-4 rounded-3xl transition-all shadow-lg ${
-                    selectedSubject === subject.name
-                      ? `${subject.bgColor} ring-4 ring-offset-2 ring-purple-400 shadow-xl`
-                      : 'bg-white hover:shadow-xl'
+                  key={unit}
+                  whileHover={{ scale: isLocked ? 1 : 1.1 }}
+                  onClick={() => !isLocked && setSelectedUnit(unit)}
+                  className={`relative flex-shrink-0 w-20 h-24 rounded-3xl flex flex-col items-center justify-center transition-all ${
+                    isSelected 
+                      ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200' 
+                      : isLocked 
+                        ? 'bg-gray-100 text-gray-400' 
+                        : 'bg-white text-gray-600 border border-gray-100 shadow-sm'
                   }`}
                 >
-                  <div className={`w-14 h-14 bg-gradient-to-br ${subject.gradient} rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-md`}>
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-                  {/* <p className="text-2xl mb-1">{subject.emoji}</p> */}
-                  <p className="text-xs font-bold text-gray-700">{subject.name}</p>
+                  <span className={`text-xs font-black uppercase tracking-tighter mb-1 ${isSelected ? 'text-indigo-200' : 'text-gray-400'}`}>Unit</span>
+                  <span className="text-2xl font-black">{unit}</span>
+                  {isLocked && <Lock className="w-3 h-3 mt-1 text-gray-400" />}
+                  {isSelected && (
+                    <motion.div 
+                      layoutId="grade-glow"
+                      className="absolute -bottom-1 w-8 h-1 bg-white rounded-full shadow-[0_0_8px_white]" 
+                    />
+                  )}
                 </motion.button>
               );
             })}
           </div>
         </div>
 
-        {/* Grade Selection */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-3xl shadow-xl p-6 mb-6"
-        >
-          <h2 className="text-lg font-black text-gray-800 mb-4">🎯 Select Grade</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {[1, 2, 3, 4, 5, 6].map((grade) => (
-              <motion.button
-                key={grade}
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedGrade(grade)}
-                className={`py-5 px-4 rounded-2xl font-black text-xl transition-all shadow-lg ${
-                  selectedGrade === grade
-                    ? 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white ring-4 ring-yellow-300 shadow-xl'
-                    : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 hover:shadow-xl'
-                }`}
+        {/* 3. Subject Mission Cards */}
+        <div className="mb-10">
+          <h3 className="text-xl font-black text-gray-800 mb-6">Active Missions</h3>
+          <div className="space-y-4">
+            {subjects.map((subject) => (
+              <motion.div
+                key={subject.id}
+                whileHover={{ x: 8 }}
+                onClick={() => handleStart(subject.name)}
+                className="bg-white rounded-[28px] p-5 shadow-sm border border-gray-100 flex items-center gap-5 cursor-pointer relative group"
               >
-                {grade}
-              </motion.button>
+                <div className={`w-20 h-20 rounded-2xl ${subject.bgColor} flex items-center justify-center text-4xl shadow-inner group-hover:scale-105 transition-transform`}>
+                  {subject.illustration}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-lg font-black text-gray-800">{subject.name}</h4>
+                    <div className="flex items-center gap-1 text-yellow-500">
+                      <Star className="w-4 h-4 fill-current" />
+                      <span className="text-xs font-black">{subject.stars}</span>
+                    </div>
+                  </div>
+                  <p className={`text-xs font-bold mb-3 ${subject.accentColor}`}>{subject.status}</p>
+                  
+                  <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden mb-2">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${subject.progress}%` }}
+                      className={`absolute top-0 left-0 h-full bg-gradient-to-r ${subject.gradient}`}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-gray-400">{subject.progress}% Completed</span>
+                    <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">{subject.reward}</span>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        {/* Start Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <motion.button
-            whileHover={{ scale: selectedGrade && selectedSubject ? 1.02 : 1 }}
-            whileTap={{ scale: selectedGrade && selectedSubject ? 0.98 : 1 }}
-            onClick={handleStart}
-            disabled={!selectedGrade || !selectedSubject}
-            className={`w-full py-5 rounded-3xl font-black text-xl transition-all shadow-xl ${
-              selectedGrade && selectedSubject
-                ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white hover:shadow-2xl'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+        {/* 5. Leaderboard Podium Section */}
+        <div className="mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100"
           >
-            {selectedGrade && selectedSubject ? '🚀 Let\'s Go!' : '👆 Pick Grade & Subject'}
-          </motion.button>
-        </motion.div>
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-black text-gray-800">Top Students</h3>
+              <Trophy className="w-6 h-6 text-yellow-500" />
+            </div>
+
+            {/* Podium */}
+            <div className="flex items-end justify-center gap-2 mb-10 mt-4 px-2">
+              {/* 2nd Place */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-full mb-2 flex items-center justify-center text-xl border-2 border-white shadow-md">🥈</div>
+                <div className="w-20 h-16 bg-gray-100 rounded-t-2xl flex flex-col items-center justify-center border-x border-t border-gray-200">
+                  <span className="text-xs font-black text-gray-600">Sarah</span>
+                  <span className="text-[10px] font-bold text-gray-400">2,720</span>
+                </div>
+              </div>
+              {/* 1st Place */}
+              <div className="flex flex-col items-center">
+                <Crown className="w-6 h-6 text-yellow-500 mb-1" />
+                <div className="w-16 h-16 bg-yellow-100 rounded-full mb-2 flex items-center justify-center text-3xl border-2 border-white shadow-xl ring-4 ring-yellow-50 shadow-yellow-200">🥇</div>
+                <div className="w-24 h-24 bg-gradient-to-b from-yellow-100 to-white rounded-t-2xl flex flex-col items-center justify-center border-x border-t border-yellow-200">
+                  <span className="text-sm font-black text-yellow-700">Alex</span>
+                  <span className="text-xs font-bold text-yellow-600">2,850</span>
+                </div>
+              </div>
+              {/* 3rd Place */}
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-orange-50 rounded-full mb-2 flex items-center justify-center text-xl border-2 border-white shadow-md">🥉</div>
+                <div className="w-20 h-12 bg-orange-50 rounded-t-2xl flex flex-col items-center justify-center border-x border-t border-orange-100">
+                  <span className="text-xs font-black text-orange-700">Liam</span>
+                  <span className="text-[10px] font-bold text-orange-400">2,540</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex p-1 bg-gray-50 rounded-2xl mb-6">
+              {['Weekly', 'Grade', 'Subject', 'Overall'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setLeaderboardTab(tab.toLowerCase() as any)}
+                  className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition-all ${
+                    leaderboardTab === tab.toLowerCase() 
+                      ? 'bg-white text-indigo-600 shadow-sm' 
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* User Rank Card */}
+            <div className="bg-indigo-600 rounded-3xl p-4 text-white flex items-center justify-between shadow-xl shadow-indigo-100">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-black">5</div>
+                <div>
+                  <p className="text-sm font-black">Glaiza Felices (You)</p>
+                  <p className="text-[10px] font-bold text-white/70">Only 63 stars to reach #4!</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-black">2,680</p>
+                <p className="text-[10px] font-black uppercase opacity-70">Stars</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Dock */}
+      <div className="fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-gray-100 px-8 flex items-center justify-between z-50">
+        <motion.button 
+          whileTap={{ scale: 0.9 }} 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="text-indigo-600 flex flex-col items-center"
+        >
+          <Play className="w-6 h-6 fill-current" />
+          <span className="text-[10px] font-black mt-1 uppercase">Learn</span>
+        </motion.button>
+        <motion.button 
+          whileTap={{ scale: 0.9 }} 
+          onClick={() => navigate('/badges')}
+          className="text-gray-400 flex flex-col items-center"
+        >
+          <Award className="w-6 h-6" />
+          <span className="text-[10px] font-black mt-1 uppercase">Awards</span>
+        </motion.button>
+        <div className="w-14 h-14 bg-indigo-600 rounded-full -mt-10 border-4 border-[#F8F6FF] flex items-center justify-center shadow-lg shadow-indigo-200">
+          <User className="w-6 h-6 text-white" />
+        </div>
+        <motion.button 
+          whileTap={{ scale: 0.9 }} 
+          onClick={() => navigate('/leaderboard')}
+          className="text-gray-400 flex flex-col items-center"
+        >
+          <Trophy className="w-6 h-6" />
+          <span className="text-[10px] font-black mt-1 uppercase">Rank</span>
+        </motion.button>
+        <motion.button 
+          whileTap={{ scale: 0.9 }} 
+          onClick={() => handleQuickAction('daily')}
+          className="text-gray-400 flex flex-col items-center"
+        >
+          <Zap className="w-6 h-6" />
+          <span className="text-[10px] font-black mt-1 uppercase">Daily</span>
+        </motion.button>
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ export default function Login() {
     if (username.trim() && password.trim()) {
       localStorage.setItem('isLoggedIn', 'true');
       localStorage.setItem('username', username);
-      navigate('/');
+      navigate('/onboarding');
     }
   };
 
