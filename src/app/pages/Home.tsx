@@ -195,7 +195,7 @@ export default function Home() {
 
       <div className="max-w-md mx-auto px-5">
         {/* 2. Quick Actions Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-10">
+        {/* <div className="grid grid-cols-2 gap-4 mb-10">
           {quickActions.map((action) => (
             <motion.button
               key={action.id}
@@ -210,7 +210,7 @@ export default function Home() {
               <span className="font-black text-gray-700">{action.label}</span>
             </motion.button>
           ))}
-        </div>
+        </div> */}
 
         {/* 4. Grade Journey Section -> Path Journey Section */}
         <div className="mb-10 overflow-hidden">
