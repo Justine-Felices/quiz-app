@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { GraduationCap, Star, Heart, Sparkles } from 'lucide-react';
 
 export default function Login() {
-  const [username, setUsername] = useState('Glaiza Felices');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
@@ -59,7 +59,7 @@ export default function Login() {
             <GraduationCap className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-yellow-600">
-            Quiz Fun! 🎉
+            ReadView! 🎉
           </h1>
           <p className="text-gray-600 font-bold mt-2">Let's learn together!</p>
         </motion.div>
@@ -106,7 +106,7 @@ export default function Login() {
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >
-            {username && password ? '🚀 Let\'s Go!' : '✋ Fill the form first!'}
+            {username && password ? '🚀 Let\'s Go!' : 'Log in'}
           </motion.button>
         </form>
 

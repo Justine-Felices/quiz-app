@@ -69,16 +69,13 @@ export default function Home() {
   const navigate = useNavigate();
   
   useEffect(() => {
-    if (!localStorage.getItem('username')) {
-      localStorage.setItem('username', 'Glaiza Felices');
-    }
     const storedGrade = localStorage.getItem('userGrade');
     if (storedGrade) {
       setUserGrade(parseInt(storedGrade));
     }
   }, []);
 
-  const username = localStorage.getItem('username') || 'Glaiza Felices';
+  const username = localStorage.getItem('username') || 'Student';
 
   useEffect(() => {
     const scores = quizService.getUserScores(username);
@@ -354,7 +351,7 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center font-black">5</div>
                 <div>
-                  <p className="text-sm font-black">Glaiza Felices (You)</p>
+                  <p className="text-sm font-black">{username} (You)</p>
                   <p className="text-[10px] font-bold text-white/70">Only 63 stars to reach #4!</p>
                 </div>
               </div>

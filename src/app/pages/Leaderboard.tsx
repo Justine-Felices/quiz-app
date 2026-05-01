@@ -3,20 +3,21 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router';
 import { Trophy, Crown, ChevronLeft, Star, TrendingUp, Users, Medal } from 'lucide-react';
 
-const rankings = [
-  { rank: 1, name: 'Alex Rivera', avatar: '👨‍🎓', points: 2850, stars: 142, trend: 'up' },
-  { rank: 2, name: 'Sarah Chen', avatar: '👩‍🎓', points: 2720, stars: 136, trend: 'same' },
-  { rank: 3, name: 'Liam Wilson', avatar: '👨‍🔬', points: 2540, stars: 127, trend: 'down' },
-  { rank: 4, name: 'Emma Stone', avatar: '👩‍🎨', points: 2410, stars: 120, trend: 'up' },
-  { rank: 5, name: 'Glaiza Felices', avatar: '👧', points: 2380, stars: 119, trend: 'up', isUser: true },
-  { rank: 6, name: 'James Bond', avatar: '🕵️', points: 2250, stars: 112, trend: 'same' },
-  { rank: 7, name: 'Peter Parker', avatar: '🕷️', points: 2100, stars: 105, trend: 'down' },
-  { rank: 8, name: 'Tony Stark', avatar: '🤖', points: 2050, stars: 102, trend: 'up' },
-];
-
 export default function Leaderboard() {
   const [category, setCategory] = useState<'grade' | 'subject' | 'overall'>('grade');
   const navigate = useNavigate();
+  const username = localStorage.getItem('username') || 'Student';
+
+  const rankings = [
+    { rank: 1, name: 'Alex Rivera', avatar: '👨‍🎓', points: 2850, stars: 142, trend: 'up' },
+    { rank: 2, name: 'Sarah Chen', avatar: '👩‍🎓', points: 2720, stars: 136, trend: 'same' },
+    { rank: 3, name: 'Liam Wilson', avatar: '👨‍🔬', points: 2540, stars: 127, trend: 'down' },
+    { rank: 4, name: 'Emma Stone', avatar: '👩‍🎨', points: 2410, stars: 120, trend: 'up' },
+    { rank: 5, name: username, avatar: '👧', points: 2380, stars: 119, trend: 'up', isUser: true },
+    { rank: 6, name: 'James Bond', avatar: '🕵️', points: 2250, stars: 112, trend: 'same' },
+    { rank: 7, name: 'Peter Parker', avatar: '🕷️', points: 2100, stars: 105, trend: 'down' },
+    { rank: 8, name: 'Tony Stark', avatar: '🤖', points: 2050, stars: 102, trend: 'up' },
+  ];
 
   return (
     <div className="min-h-screen bg-[#F8F6FF] pb-10">

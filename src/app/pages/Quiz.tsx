@@ -17,9 +17,11 @@ export default function Quiz() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [selectedReasoning, setSelectedReasoning] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
   const [answeredQuestions, setAnsweredQuestions] = useState(0);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     const loadedQuestions = getQuestionsByGradeAndSubject(grade, subject);
@@ -32,13 +34,24 @@ export default function Quiz() {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  const handleAnswerClick = (answerIndex: number) => {
-    if (selectedAnswer !== null) return;
+  const handleAnswerClick = (index: number) => {
+    if (isSubmitted) return;
+    setSelectedAnswer(index);
+  };
 
-    setSelectedAnswer(answerIndex);
-    const isCorrect = answerIndex === currentQuestion.correctAnswer;
+  const handleReasoningClick = (index: number) => {
+    if (isSubmitted) return;
+    setSelectedReasoning(index);
+  };
 
-    if (isCorrect) {
+  const handleSubmit = () => {
+    if (selectedAnswer === null || selectedReasoning === null || isSubmitted) return;
+
+    setIsSubmitted(true);
+    const isAnswerCorrect = selectedAnswer === currentQuestion.correctAnswer;
+    const isReasoningCorrect = selectedReasoning === currentQuestion.correctReasoning;
+
+    if (isAnswerCorrect && isReasoningCorrect) {
       setScore(score + 1);
     }
 
@@ -52,6 +65,8 @@ export default function Quiz() {
   const handleNext = () => {
     setShowFeedback(false);
     setSelectedAnswer(null);
+    setSelectedReasoning(null);
+    setIsSubmitted(false);
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -73,7 +88,7 @@ export default function Quiz() {
     return null;
   }
 
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const progress = (answeredQuestions / questions.length) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 p-4 pb-safe">
@@ -146,55 +161,120 @@ export default function Quiz() {
             </div>
 
             {/* Answer Options */}
-            <div className="space-y-3">
+            <div className="space-y-3 mb-8">
               {currentQuestion.options.map((option, index) => {
                 const isSelected = selectedAnswer === index;
                 const isCorrect = index === currentQuestion.correctAnswer;
-                const showResult = selectedAnswer !== null;
+                const showResult = isSubmitted;
 
-                let buttonClass = 'bg-gradient-to-br from-gray-50 to-gray-100 hover:from-purple-100 hover:to-pink-100 text-gray-800 border-4 border-gray-300';
+                let buttonClass = 'bg-white text-gray-800 border-2 border-gray-100 hover:border-purple-200';
+
+                if (isSelected) {
+                  buttonClass = 'bg-purple-50 text-purple-700 border-2 border-purple-500 shadow-md ring-2 ring-purple-100';
+                }
 
                 if (showResult) {
                   if (isCorrect) {
-                    buttonClass = 'bg-gradient-to-br from-green-400 to-emerald-500 text-white border-4 border-green-500 ring-4 ring-green-200';
+                    buttonClass = 'bg-green-50 text-green-700 border-2 border-green-500';
                   } else if (isSelected && !isCorrect) {
-                    buttonClass = 'bg-gradient-to-br from-red-400 to-orange-400 text-white border-4 border-red-500 ring-4 ring-red-200';
+                    buttonClass = 'bg-red-50 text-red-700 border-2 border-red-500';
                   } else {
-                    buttonClass = 'bg-gray-200 text-gray-500 border-4 border-gray-300';
+                    buttonClass = 'bg-gray-50 text-gray-400 border-2 border-gray-100 opacity-60';
                   }
                 }
 
                 return (
                   <motion.button
-                    key={index}
-                    whileHover={{ scale: selectedAnswer === null ? 1.02 : 1, y: selectedAnswer === null ? -3 : 0 }}
-                    whileTap={{ scale: selectedAnswer === null ? 0.98 : 1 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    key={`ans-${index}`}
+                    whileHover={{ scale: !isSubmitted ? 1.01 : 1 }}
+                    whileTap={{ scale: !isSubmitted ? 0.99 : 1 }}
                     onClick={() => handleAnswerClick(index)}
-                    disabled={selectedAnswer !== null}
-                    className={`w-full p-4 rounded-2xl font-bold text-left transition-all shadow-lg ${buttonClass}`}
+                    disabled={isSubmitted}
+                    className={`w-full p-4 rounded-2xl font-bold text-left transition-all flex items-center gap-3 ${buttonClass}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-full bg-white/40 flex items-center justify-center font-black text-sm">
-                        {String.fromCharCode(65 + index)}
-                      </span>
-                      <span>{option}</span>
-                    </div>
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${isSelected ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    <span>{option}</span>
                   </motion.button>
                 );
               })}
             </div>
+
+            {/* Reasoning Section */}
+            <div className="mb-8">
+              <div className="flex flex-col mb-4">
+                <h3 className="text-emerald-600 font-black text-lg">Reasoning</h3>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">Why did you choose your answer?</p>
+              </div>
+              <div className="space-y-3">
+                {currentQuestion.reasoningOptions.map((option, index) => {
+                  const isSelected = selectedReasoning === index;
+                  const isCorrect = index === currentQuestion.correctReasoning;
+                  const showResult = isSubmitted;
+
+                  let buttonClass = 'bg-white text-gray-700 border-2 border-gray-100 hover:border-emerald-200';
+
+                  if (isSelected) {
+                    buttonClass = 'bg-emerald-50 text-emerald-700 border-2 border-emerald-500 shadow-md ring-2 ring-emerald-100';
+                  }
+
+                  if (showResult) {
+                    if (isCorrect) {
+                      buttonClass = 'bg-green-50 text-green-700 border-2 border-green-500';
+                    } else if (isSelected && !isCorrect) {
+                      buttonClass = 'bg-red-50 text-red-700 border-2 border-red-500';
+                    } else {
+                      buttonClass = 'bg-gray-50 text-gray-400 border-2 border-gray-100 opacity-60';
+                    }
+                  }
+
+                  return (
+                    <motion.button
+                      key={`reason-${index}`}
+                      whileHover={{ scale: !isSubmitted ? 1.01 : 1 }}
+                      whileTap={{ scale: !isSubmitted ? 0.99 : 1 }}
+                      onClick={() => handleReasoningClick(index)}
+                      disabled={isSubmitted}
+                      className={`w-full p-3 rounded-xl font-medium text-sm text-left transition-all ${buttonClass}`}
+                    >
+                      {option}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            {!isSubmitted && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSubmit}
+                disabled={selectedAnswer === null || selectedReasoning === null}
+                className={`w-full py-4 rounded-2xl font-black text-lg shadow-xl transition-all ${
+                  selectedAnswer !== null && selectedReasoning !== null
+                    ? 'bg-emerald-600 text-white shadow-emerald-200'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                Submit
+              </motion.button>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* Feedback Modal */}
-      {showFeedback && selectedAnswer !== null && (
+      {showFeedback && selectedAnswer !== null && selectedReasoning !== null && (
         <FeedbackModal
-          isCorrect={selectedAnswer === currentQuestion.correctAnswer}
+          isCorrect={selectedAnswer === currentQuestion.correctAnswer && selectedReasoning === currentQuestion.correctReasoning}
+          isAnswerCorrect={selectedAnswer === currentQuestion.correctAnswer}
+          isReasoningCorrect={selectedReasoning === currentQuestion.correctReasoning}
           correctAnswer={currentQuestion.options[currentQuestion.correctAnswer]}
+          correctReasoning={currentQuestion.reasoningOptions[currentQuestion.correctReasoning]}
           explanation={currentQuestion.explanation}
           onNext={handleNext}
         />

@@ -162,7 +162,7 @@ export default function Results() {
             className="w-full py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 text-white rounded-2xl font-black text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
           >
             <RotateCcw className="w-5 h-5" />
-            🔄 Play Again
+             Play Again
           </motion.button>
 
           <motion.button
@@ -172,7 +172,7 @@ export default function Results() {
             className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl font-black text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
           >
             <Home className="w-5 h-5" />
-            🏠 Back to Home
+             Back to Home
           </motion.button>
         </div>
 

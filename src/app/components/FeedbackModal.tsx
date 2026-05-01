@@ -3,12 +3,23 @@ import { CheckCircle2, XCircle, Sparkles } from 'lucide-react';
 
 interface FeedbackModalProps {
   isCorrect: boolean;
+  isAnswerCorrect: boolean;
+  isReasoningCorrect: boolean;
   correctAnswer: string;
+  correctReasoning: string;
   explanation: string;
   onNext: () => void;
 }
 
-export function FeedbackModal({ isCorrect, correctAnswer, explanation, onNext }: FeedbackModalProps) {
+export function FeedbackModal({ 
+  isCorrect, 
+  isAnswerCorrect, 
+  isReasoningCorrect, 
+  correctAnswer, 
+  correctReasoning, 
+  explanation, 
+  onNext 
+}: FeedbackModalProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -56,19 +67,51 @@ export function FeedbackModal({ isCorrect, correctAnswer, explanation, onNext }:
           )}
         </motion.div>
 
-        <h2 className="text-4xl font-black mb-4">
-          {isCorrect ? '🎉 Great Job!' : '💪 Nice Try!'}
+        <h2 className="text-4xl font-black mb-6">
+          {isCorrect ? '🎉 Perfect!' : isAnswerCorrect || isReasoningCorrect ? '👍 Almost There!' : '💪 Keep Trying!'}
         </h2>
 
-        {!isCorrect && (
-          <div className="mb-4 p-4 bg-white/70 rounded-2xl border-4 border-white">
-            <p className="text-sm font-bold text-gray-600 mb-1">The correct answer is:</p>
-            <p className="font-black text-lg text-gray-800">{correctAnswer}</p>
+        <div className="space-y-4 mb-8">
+          {/* Answer Feedback */}
+          <div className={`p-4 rounded-2xl border-4 ${isAnswerCorrect ? 'bg-white/70 border-green-200' : 'bg-white/70 border-orange-200'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-black uppercase tracking-widest text-gray-500">Answer Status</span>
+              {isAnswerCorrect ? (
+                <span className="text-xs font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Correct</span>
+              ) : (
+                <span className="text-xs font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">Incorrect</span>
+              )}
+            </div>
+            {!isAnswerCorrect && (
+              <p className="font-black text-lg text-gray-800">{correctAnswer}</p>
+            )}
+            {isAnswerCorrect && (
+              <p className="font-black text-lg text-green-700">You got the answer!</p>
+            )}
           </div>
-        )}
 
-        <div className="mb-6 p-4 bg-white/70 rounded-2xl border-4 border-white">
-          <p className="font-bold text-gray-700">{explanation}</p>
+          {/* Reasoning Feedback */}
+          <div className={`p-4 rounded-2xl border-4 ${isReasoningCorrect ? 'bg-white/70 border-green-200' : 'bg-white/70 border-orange-200'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-black uppercase tracking-widest text-gray-500">Reasoning Status</span>
+              {isReasoningCorrect ? (
+                <span className="text-xs font-black text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Correct</span>
+              ) : (
+                <span className="text-xs font-black text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">Incorrect</span>
+              )}
+            </div>
+            {!isReasoningCorrect && (
+              <p className="font-bold text-sm text-gray-700 leading-tight">{correctReasoning}</p>
+            )}
+            {isReasoningCorrect && (
+              <p className="font-bold text-sm text-green-700">Brilliant logic!</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-8 p-6 bg-white/50 rounded-3xl border-2 border-white/50 text-left">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Did you know?</p>
+          <p className="font-bold text-gray-700 text-sm">{explanation}</p>
         </div>
 
         <motion.button
