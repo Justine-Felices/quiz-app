@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, ChevronRight, GraduationCap, Star, Rocket, Target } from 'lucide-react';
+import { Sparkles, ChevronRight, GraduationCap, Star, Rocket, Target, Users } from 'lucide-react';
 
 const steps = [
   {
@@ -11,6 +11,14 @@ const steps = [
     icon: Star,
     color: 'text-yellow-500',
     bg: 'bg-yellow-50'
+  },
+  {
+    id: 'role',
+    title: "Who are you?",
+    subtitle: "Tell us your role to customize your path.",
+    icon: Users,
+    color: 'text-blue-500',
+    bg: 'bg-blue-50'
   },
   {
     id: 'grade',
@@ -33,7 +41,8 @@ const steps = [
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState(localStorage.getItem('username') || '');
-  const [grade, setGrade] = useState<number | null>(null);
+  const [role, setRole] = useState<string | null>(localStorage.getItem('userRole') || null);
+  const [grade, setGrade] = useState<number | null>(localStorage.getItem('userGrade') ? parseInt(localStorage.getItem('userGrade')!) : null);
   const [goal, setGoal] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -42,6 +51,7 @@ export default function Onboarding() {
       setStep(step + 1);
     } else {
       localStorage.setItem('username', name);
+      localStorage.setItem('userRole', role || 'student');
       localStorage.setItem('userGrade', grade?.toString() || '4');
       localStorage.setItem('onboardingComplete', 'true');
       navigate('/');
@@ -100,6 +110,38 @@ export default function Onboarding() {
               )}
 
               {step === 1 && (
+                <div className="space-y-4">
+                  {[
+                    { id: 'student', label: 'I am a Student', icon: '🎒' },
+                    { id: 'teacher', label: 'I am a Teacher', icon: '👨‍🏫' },
+                    { id: 'parent', label: 'I am a Parent', icon: '👨‍👩-👦' },
+                  ].map((r) => (
+                    <motion.button
+                      key={r.id}
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setRole(r.id)}
+                      className={`w-full p-6 rounded-3xl flex items-center justify-between transition-all border-4 ${
+                        role === r.id
+                          ? 'bg-blue-50 border-blue-500 shadow-sm'
+                          : 'bg-white border-gray-100 hover:border-blue-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-3xl">{r.icon}</span>
+                        <span className="font-black text-gray-700 text-lg">{r.label}</span>
+                      </div>
+                      {role === r.id && (
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <ChevronRight className="w-5 h-5 text-white" />
+                        </div>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+
+              {step === 2 && (
                 <div className="grid grid-cols-3 gap-4">
                   {[1, 2, 3, 4, 5, 6].map((g) => (
                     <motion.button
@@ -120,7 +162,7 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {step === 2 && (
+              {step === 3 && (
                 <div className="space-y-4">
                   {[
                     { id: 'smart', label: 'Get Smarter!', icon: '🧠' },
@@ -162,11 +204,12 @@ export default function Onboarding() {
           onClick={handleNext}
           disabled={
             (step === 0 && !name.trim()) ||
-            (step === 1 && grade === null) ||
-            (step === 2 && goal === null)
+            (step === 1 && !role) ||
+            (step === 2 && grade === null) ||
+            (step === 3 && goal === null)
           }
           className={`w-full py-5 rounded-3xl font-black text-xl flex items-center justify-center gap-2 transition-all shadow-xl ${
-            ((step === 0 && name.trim()) || (step === 1 && grade !== null) || (step === 2 && goal !== null))
+            ((step === 0 && name.trim()) || (step === 1 && role) || (step === 2 && grade !== null) || (step === 3 && goal !== null))
               ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-indigo-100'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
